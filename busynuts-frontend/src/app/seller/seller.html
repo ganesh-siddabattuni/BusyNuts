@@ -1,0 +1,69 @@
+<div style="display: flex; height: 100vh; font-family: sans-serif; background-color: #f4f6f9;">
+  
+  <div style="width: 250px; background-color: #8e44ad; color: white; padding: 20px; display: flex; flex-direction: column;">
+    <h2 style="margin-top: 0; border-bottom: 1px solid #9b59b6; padding-bottom: 10px;">Supplier Portal</h2>
+    <p>Logged in as: <strong>{{ sellerUsername }}</strong></p>
+    
+    <ul style="list-style: none; padding: 0; flex-grow: 1;">
+      <li style="padding: 15px 0; font-weight: bold; color: #ecf0f1;">🚜 My Harvest Lots</li>
+    </ul>
+
+    <button (click)="onLogout()" style="padding: 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Logout
+    </button>
+  </div>
+
+  <div style="flex-grow: 1; padding: 30px; overflow-y: auto;">
+    
+    <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+      <h3 style="margin-top: 0; color: #2c3e50;">Submit New Raw Material Batch</h3>
+      <form (ngSubmit)="submitLot()">
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+          
+          <select [(ngModel)]="newLot.materialType" name="materialType" style="padding: 8px; flex: 1;">
+            <option value="Peanut Cake">Peanut Cake (Defatted)</option>
+            <option value="Raw Peanuts">Raw Peanuts</option>
+            <option value="Sesame Seeds">Sesame Seeds</option>
+          </select>
+
+          <input type="number" placeholder="Weight (in Kg)" [(ngModel)]="newLot.weightInKg" name="weightInKg" required style="width: 150px; padding: 8px;">
+          <input type="number" placeholder="Asking Price (₹ Total)" [(ngModel)]="newLot.askingPrice" name="askingPrice" required style="width: 150px; padding: 8px;">
+          
+          <button type="submit" style="padding: 8px 20px; background-color: #8e44ad; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            Submit to Factory
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <h3 style="color: #333;">My Submission History</h3>
+    <table style="width: 100%; border-collapse: collapse; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <thead style="background-color: #ecf0f1; text-align: left;">
+        <tr>
+          <th style="padding: 12px; border-bottom: 2px solid #bdc3c7;">Material Type</th>
+          <th style="padding: 12px; border-bottom: 2px solid #bdc3c7;">Weight</th>
+          <th style="padding: 12px; border-bottom: 2px solid #bdc3c7;">Asking Price</th>
+          <th style="padding: 12px; border-bottom: 2px solid #bdc3c7;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (lot of myLots(); track lot.id) {
+          <tr style="border-bottom: 1px solid #ecf0f1;">
+            <td style="padding: 12px;">{{ lot.materialType }}</td>
+            <td style="padding: 12px;">{{ lot.weightInKg }} kg</td>
+            <td style="padding: 12px;">₹{{ lot.askingPrice }}</td>
+            <td style="padding: 12px; font-weight: bold;" 
+                [ngStyle]="{'color': lot.status === 'PENDING' ? '#f39c12' : lot.status === 'APPROVED' ? '#27ae60' : lot.status === 'REJECTED' ? '#e74c3c' : '#2980b9'}">
+              {{ lot.status }}
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" style="padding: 20px; text-align: center; color: #7f8c8d;">You haven't submitted any materials yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+  </div>
+</div>

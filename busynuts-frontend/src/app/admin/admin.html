@@ -1,0 +1,102 @@
+<div style="display: flex; height: 100vh; font-family: sans-serif; background-color: #f4f6f9;">
+  
+  <div style="width: 250px; background-color: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column;">
+    <h2 style="margin-top: 0; border-bottom: 1px solid #34495e; padding-bottom: 10px;">BusyNuts Admin</h2>
+    
+    <ul style="list-style: none; padding: 0; flex-grow: 1;">
+      <li (click)="setTab('dashboard')" [ngStyle]="{'font-weight': activeTab === 'dashboard' ? 'bold' : 'normal'}" style="padding: 15px 0; cursor: pointer; color: #ecf0f1;">📊 Dashboard</li>
+      
+      <li (click)="setTab('procurement')" [ngStyle]="{'font-weight': activeTab === 'procurement' ? 'bold' : 'normal'}" style="padding: 15px 0; cursor: pointer; color: #ecf0f1;">🥜 Procurement Queue</li>
+      
+      <li (click)="setTab('inventory')" [ngStyle]="{'font-weight': activeTab === 'inventory' ? 'bold' : 'normal'}" style="padding: 15px 0; cursor: pointer; color: #ecf0f1;">📦 Product Inventory</li>
+    </ul>
+
+    <button (click)="onLogout()" style="padding: 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Logout
+    </button>
+  </div>
+
+  <div style="flex-grow: 1; padding: 30px; overflow-y: auto;">
+    
+    <div *ngIf="activeTab === 'dashboard'">
+      <h1 style="color: #333;">Admin Dashboard</h1>
+      <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0;">Welcome back!</h3>
+        <p>Your current access level: <strong style="color: #27ae60;">{{ userRole }}</strong></p>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'procurement'">
+      <h1 style="color: #333;">Inbound Raw Materials Queue</h1>
+      
+      <table style="width: 100%; border-collapse: collapse; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+        <thead style="background-color: #ecf0f1; text-align: left;">
+          <tr>
+            <th style="padding: 15px;">Seller</th>
+            <th style="padding: 15px;">Material</th>
+            <th style="padding: 15px;">Weight</th>
+            <th style="padding: 15px;">Asking Price</th>
+            <th style="padding: 15px;">Status</th>
+            <th style="padding: 15px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (batch of procurementQueue(); track batch.id) {
+            <tr style="border-bottom: 1px solid #ecf0f1;">
+              <td style="padding: 15px; font-weight: bold; color: #2980b9;">{{ batch.sellerUsername }}</td>
+              <td style="padding: 15px;">{{ batch.materialType }}</td>
+              <td style="padding: 15px;">{{ batch.weightInKg }} kg</td>
+              <td style="padding: 15px;">₹{{ batch.askingPrice }}</td>
+              <td style="padding: 15px; font-weight: bold;" 
+                  [ngStyle]="{'color': batch.status === 'PENDING' ? '#f39c12' : batch.status === 'APPROVED' ? '#27ae60' : batch.status === 'REJECTED' ? '#e74c3c' : '#2980b9'}">
+                {{ batch.status }}
+              </td>
+              <td style="padding: 15px; display: flex; gap: 10px;">
+                <button *ngIf="batch.status === 'PENDING'" (click)="updateMaterialStatus(batch.id, 'APPROVED')" style="padding: 6px 12px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">Approve</button>
+                <button *ngIf="batch.status === 'PENDING'" (click)="updateMaterialStatus(batch.id, 'REJECTED')" style="padding: 6px 12px; background-color: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">Reject</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" style="padding: 20px; text-align: center; color: #7f8c8d;">No pending raw materials in the queue.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="activeTab === 'inventory'">
+      <h1 style="color: #333;">Product Inventory</h1>
+      
+      <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <h3 style="margin-top: 0;">Add New Product</h3>
+        <form (ngSubmit)="addProduct()">
+          <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <input type="text" placeholder="Product Name" [(ngModel)]="newProduct.name" name="name" required style="flex: 1; padding: 8px;">
+            <input type="number" placeholder="Price (₹)" [(ngModel)]="newProduct.price" name="price" required style="width: 150px; padding: 8px;">
+            <input type="number" placeholder="Initial Stock" [(ngModel)]="newProduct.stockQuantity" name="stockQuantity" required style="width: 150px; padding: 8px;">
+          </div>
+          <textarea placeholder="Product Description..." [(ngModel)]="newProduct.description" name="description" style="width: 100%; padding: 8px; margin-bottom: 15px; box-sizing: border-box; height: 60px;"></textarea>
+          <button type="submit" style="padding: 10px 20px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Product</button>
+        </form>
+      </div>
+
+      <h3 style="color: #333;">Current Catalog</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+        @for (product of products(); track product.id) {
+          <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 5px solid #2980b9;">
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">{{ product.name }}</h4>
+            <p style="margin: 0 0 10px 0; font-size: 14px; color: #7f8c8d;">{{ product.description }}</p>
+            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+              <span style="color: #27ae60;">₹{{ product.price }}</span>
+              <span style="color: #e67e22;">Stock: {{ product.stockQuantity }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div style="color: #7f8c8d; grid-column: 1 / -1;">No products in the catalog yet.</div>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>
